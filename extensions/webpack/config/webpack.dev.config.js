@@ -121,6 +121,9 @@ module.exports = function (workspaceDir, entryFiles, publicRoot, publicPath) {
     },
 
     plugins: [
+      compiler.hooks.done.tap('compiled', (context, entry) => {
+        console.log('=====> compiled')
+      }),
       new HtmlWebpackPlugin({
         templateContent: html('Component preview'),
         filename: 'index.html',

@@ -88,6 +88,13 @@ export class WorkspaceUIRoot implements UIRoot {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async postStart(options?: PostStartOptions) {
     const devServers = await this.getServers();
+
+    //TODO[uri] : find a way to get event when compilation is done 
+
+    
+    devServers.forEach(server => {
+    });
+
     devServers.forEach((server) => server.listen());
     this.workspace.watcher.watchAll();
   }
