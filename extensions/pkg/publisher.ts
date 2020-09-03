@@ -1,4 +1,4 @@
-import { Component, ComponentID } from '@teambit/component';
+import { AspectList, Component, ComponentID } from '@teambit/component';
 import { Capsule, IsolatorMain } from '@teambit/isolator';
 import { Logger } from '@teambit/logger';
 import { Workspace } from '@teambit/workspace';
@@ -131,13 +131,14 @@ export class Publisher {
   }
 
   public shouldPublish(extensions: ExtensionDataList): boolean {
+    // const pkgExt = extensions.findExtension(ComponentID.fromString('teambit.bit/pkg'));
     const pkgExt = extensions.findExtension('teambit.bit/pkg');
     if (!pkgExt) return false;
     return pkgExt.config?.packageJson?.name || pkgExt.config?.packageJson?.publishConfig;
   }
 
   private getExtraArgsFromConfig(component: Component): string | undefined {
-    const pkgExt = component.config.extensions.findExtension('teambit.bit/pkg');
+    const pkgExt = component.config.extensions.findExtension(ComponentID.fromString('teambit.bit/pkg'));
     return pkgExt?.config?.packageManagerPublishArgs;
   }
 

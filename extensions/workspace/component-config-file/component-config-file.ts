@@ -1,6 +1,6 @@
-import { ComponentID } from '@teambit/component';
+import { AspectList, ComponentID } from '@teambit/component';
 import { COMPONENT_CONFIG_FILE_NAME } from 'bit-bin/dist/constants';
-import { ExtensionDataList } from 'bit-bin/dist/consumer/config/extension-data';
+// import { ExtensionDataList } from 'bit-bin/dist/consumer/config/extension-data';
 import { PathOsBasedAbsolute } from 'bit-bin/dist/utils/path';
 import detectIndent from 'detect-indent';
 import detectNewline from 'detect-newline';
@@ -32,7 +32,7 @@ const DEFAULT_NEWLINE = '\n';
 export class ComponentConfigFile {
   constructor(
     public componentId: ComponentID,
-    public extensions: ExtensionDataList,
+    public extensions: AspectList,
     public propagate: boolean = false,
     private options: ComponentConfigFileOptions = { indent: DEFAULT_INDENT, newLine: DEFAULT_NEWLINE },
     public defaultScope?: string
@@ -53,7 +53,7 @@ export class ComponentConfigFile {
     const indent = detectIndent(content).indent;
     const newLine = detectNewline(content);
     const componentId = ComponentID.fromObject(parsed.componentId, parsed.defaultScope || outsideDefaultScope);
-    const extensions = ExtensionDataList.fromConfigObject(parsed.extensions);
+    const extensions = AspectList.fromConfigObject(parsed.extensions);
 
     return new ComponentConfigFile(
       componentId,

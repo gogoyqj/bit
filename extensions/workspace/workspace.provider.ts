@@ -125,9 +125,10 @@ export default async function provideWorkspace(
     const extensions = await workspace.componentExtensions(componentId, componentFromScope);
     const defaultScope = await workspace.componentDefaultScope(componentId);
     await workspace.loadExtensions(extensions);
+    const legacyExtensions = extensions.toLegacy();
     return {
       defaultScope,
-      extensions,
+      extensions: legacyExtensions,
     };
   });
 

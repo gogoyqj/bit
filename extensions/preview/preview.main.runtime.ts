@@ -1,7 +1,7 @@
 import { BuilderAspect, BuilderMain } from '@teambit/builder';
 import { BundlerAspect, BundlerMain } from '@teambit/bundler';
 import { MainRuntime } from '@teambit/cli';
-import { Component, ComponentAspect, ComponentMain, ComponentMap } from '@teambit/component';
+import { Component, ComponentAspect, ComponentID, ComponentMain, ComponentMap } from '@teambit/component';
 import { EnvsAspect, EnvsMain, ExecutionContext } from '@teambit/environments';
 import { Slot, SlotRegistry } from '@teambit/harmony';
 import { UIAspect, UiMain } from '@teambit/ui';
@@ -33,7 +33,7 @@ export class PreviewMain {
   ) {}
 
   async getPreview(component: Component): Promise<PreviewArtifact> {
-    const entry = component.config.extensions.findCoreExtension(PreviewAspect.id);
+    const entry = component.config.extensions.findExtension(ComponentID.fromString(PreviewAspect.id));
     if (!entry) throw new PreviewArtifactNotFound(component.id);
     const artifacts = entry.artifacts;
     if (!artifacts) throw new PreviewArtifactNotFound(component.id);

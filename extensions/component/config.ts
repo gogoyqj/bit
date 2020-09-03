@@ -2,6 +2,7 @@ import { Compilers, Testers } from 'bit-bin/dist/consumer/config/abstract-config
 import { ComponentOverridesData } from 'bit-bin/dist/consumer/config/component-overrides';
 import { ExtensionDataList } from 'bit-bin/dist/consumer/config/extension-data';
 import { PathLinux } from 'bit-bin/dist/utils/path';
+import { AspectList } from './aspect-list';
 // import { CustomResolvedPath } from 'bit-bin/dist/consumer/component/consumer-component';
 // import { ComponentOverridesData } from 'bit-bin/dist/consumer/config/component-overrides';
 
@@ -27,7 +28,7 @@ export default class Config {
     /**
      * configured extensions
      */
-    readonly extensions: ExtensionDataList,
+    readonly extensions: AspectList,
 
     readonly legacyProperties?: LegacyConfigProps
   ) {}

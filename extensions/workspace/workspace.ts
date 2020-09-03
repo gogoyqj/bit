@@ -2,7 +2,8 @@ import type { AspectLoaderMain } from '@teambit/aspect-loader';
 import { getAspectDef } from '@teambit/aspect-loader';
 import { getAllCoreAspectsIds, isCoreAspect } from '@teambit/bit';
 import { MainRuntime } from '@teambit/cli';
-import type { ComponentMain } from '@teambit/component';
+import { AspectEntry, ComponentMain } from '@teambit/component';
+import { AspectList } from '@teambit/component';
 import {
   Component,
   ComponentFactory,
@@ -353,9 +354,10 @@ export class Workspace implements ComponentFactory {
     const entries = this.onComponentLoadSlot.toArray();
     const promises = entries.map(async ([extension, onLoad]) => {
       const data = await onLoad(component);
-      const existingExtension = component.state.config.extensions.findExtension(extension);
+      const extensionId = ComponentID.fromString(extension);
+      const existingExtension = component.state.config.extensions.findExtension(extensionId);
       if (existingExtension) existingExtension.data = merge(existingExtension.data, data);
-      component.state.config.extensions.push(this.getDataEntry(extension, data));
+      component.state.config.extensions.push(this.getDataEntry(extensionId, data));
     });
 
     await Promise.all(promises);
@@ -392,9 +394,10 @@ export class Workspace implements ComponentFactory {
     return results;
   }
 
-  private getDataEntry(extension: string, data: { [key: string]: any }): ExtensionDataEntry {
+  private getDataEntry(extensionId: ComponentID, data: { [key: string]: any }): AspectEntry {
     // TODO: @gilad we need to refactor the extension data entry api.
-    return new ExtensionDataEntry(undefined, undefined, extension, undefined, data);
+    const legacyEntry = new ExtensionDataEntry(undefined, undefined, extensionId.toString(), undefined, data);
+    return new AspectEntry(extensionId, legacyEntry);
   }
 
   private newComponentFromState(id: ComponentID, state: State): Component {
@@ -415,9 +418,9 @@ export class Workspace implements ComponentFactory {
   async ejectConfig(id: ComponentID, options: EjectConfOptions): Promise<EjectConfResult> {
     const componentId = await this.resolveComponentId(id);
     const component = await this.scope.get(componentId);
-    const extensions = component?.config.extensions ?? new ExtensionDataList();
+    const extensions = component?.config.extensions ?? new AspectList();
     // Add the default scope to the extension because we enforce it in config files
-    await this.addDefaultScopeToExtensionsList(extensions);
+    // await this.addDefaultScopeToExtensionsList(extensions);
     const componentDir = this.componentDir(id, { ignoreVersion: true });
     const componentConfigFile = new ComponentConfigFile(componentId, extensions, options.propagate);
     await componentConfigFile.write(componentDir, { override: options.override });
@@ -559,7 +562,7 @@ export class Workspace implements ComponentFactory {
    * @returns {Promise<ExtensionDataList>}
    * @memberof Workspace
    */
-  async componentExtensions(componentId: ComponentID, componentFromScope?: Component): Promise<ExtensionDataList> {
+  async componentExtensions(componentId: ComponentID, componentFromScope?: Component): Promise<AspectList> {
     // TODO: consider caching this result
     let configFileExtensions;
     let variantsExtensions;
@@ -615,6 +618,10 @@ export class Workspace implements ComponentFactory {
 
     let mergedExtensions = ExtensionDataList.mergeConfigs(extensionsToMerge);
 
+    //mergedExtensions.forEach(extEntry => {
+      //if ()
+    //});
+
     // remove self from merged extensions
     const selfInMergedExtensions = mergedExtensions.findExtension(
       componentId._legacy.toStringWithoutScopeAndVersion(),
@@ -625,7 +632,7 @@ export class Workspace implements ComponentFactory {
       mergedExtensions = mergedExtensions.remove(selfInMergedExtensions.extensionId);
     }
 
-    return mergedExtensions;
+    return AspectList.fromLegacy(mergedExtensions, this.resolveComponentId.bind(this));
   }
 
   /**
@@ -723,7 +730,7 @@ export class Workspace implements ComponentFactory {
     const allComponents = await this.getMany(allIds);
 
     const aspects = allComponents.filter((component: Component) => {
-      const data = component.config.extensions.findExtension(WorkspaceAspect.id)?.data;
+      const data = component.config.extensions.findExtension(ComponentID.fromString(WorkspaceAspect.id))?.data;
 
       if (!data) return false;
       if (data.type !== 'aspect')
@@ -783,15 +790,8 @@ export class Workspace implements ComponentFactory {
    * Load all unloaded extensions from a list
    * @param extensions list of extensions with config to load
    */
-  async loadExtensions(extensions: ExtensionDataList, throwOnError = false): Promise<void> {
-    const extensionsIdsP = extensions.map(async (extensionEntry) => {
-      // Core extension
-      if (!extensionEntry.extensionId) {
-        return extensionEntry.stringId;
-      }
-      return extensionEntry.extensionId.toString();
-    });
-    const extensionsIds = await Promise.all(extensionsIdsP);
+  async loadExtensions(extensions: AspectList, throwOnError = false): Promise<void> {
+    const extensionsIds = extensions.stringIds();
     const loadedExtensions = this.harmony.extensionsIds;
     const extensionsToLoad = difference(extensionsIds, loadedExtensions);
     if (!extensionsToLoad.length) return;
@@ -964,7 +964,8 @@ export class Workspace implements ComponentFactory {
     return ComponentID.fromLegacy(legacyId, defaultScope);
   }
 
-  async resolveMultipleComponentIds(ids: Array<string | ComponentID | BitId>) {
+
+    ids: Array<string | ComponentID | BitId>,
     return Promise.all(ids.map(async (id) => this.resolveComponentId(id)));
   }
 

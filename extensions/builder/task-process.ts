@@ -68,7 +68,6 @@ export class TaskProcess {
 
   private getExtensionDataEntry(component: Component): ExtensionDataEntry {
     const existingExtensionDataEntry =
-      component.config.extensions.findCoreExtension(this.task.extensionId) ||
       component.config.extensions.findExtension(this.task.extensionId);
     if (existingExtensionDataEntry) return existingExtensionDataEntry;
     const extensionDataEntry = new ExtensionDataEntry(undefined, undefined, this.task.extensionId);

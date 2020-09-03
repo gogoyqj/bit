@@ -1,5 +1,5 @@
 import { MainRuntime } from '@teambit/cli';
-import { Component, ComponentAspect } from '@teambit/component';
+import { AspectList, Component, ComponentAspect } from '@teambit/component';
 import { GraphqlAspect, GraphqlMain } from '@teambit/graphql';
 import { Harmony, Slot, SlotRegistry } from '@teambit/harmony';
 import { Logger, LoggerAspect, LoggerMain } from '@teambit/logger';
@@ -67,7 +67,7 @@ export class EnvsMain {
     return this.createRuntime(components);
   }
 
-  getEnvFromExtensions(extensions: ExtensionDataList): EnvDefinition {
+  getEnvFromExtensions(extensions: AspectList | ExtensionDataList): EnvDefinition {
     const envInExtensionList = extensions.find((e) => this.envSlot.get(e.stringId));
     if (envInExtensionList) {
       return {

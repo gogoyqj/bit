@@ -1,6 +1,7 @@
 /* eslint-disable max-classes-per-file */
 import R, { forEachObjIndexed } from 'ramda';
 import { compact } from 'ramda-adjunct';
+import { configure } from 'winston';
 
 import { BitId, BitIds } from '../../bit-id';
 import Source from '../../scope/models/source';
@@ -14,7 +15,14 @@ type ConfigOnlyEntry = {
   config: Record<string, any>;
 };
 
-export class ExtensionDataEntry {
+export interface LegacyDataEntry {
+  stringId: string,
+  config: { [key: string]: any },
+  data: { [key: string]: any },
+  artifacts: Array<AbstractVinyl | { relativePath: string; file: Source }>
+}
+
+export class ExtensionDataEntry implements LegacyDataEntry{
   constructor(
     public legacyId?: string,
     public extensionId?: BitId,
@@ -168,14 +176,8 @@ export class ExtensionDataList extends Array<ExtensionDataEntry> {
   static fromConfigObject(obj: { [extensionId: string]: any }): ExtensionDataList {
     const arr: ExtensionDataEntry[] = [];
     forEachObjIndexed((config, id) => {
-      const isCore = ExtensionDataList.coreExtensionsNames.has(id);
-      let entry;
-      if (!isCore) {
-        const parsedId = BitId.parse(id, true);
-        entry = new ExtensionDataEntry(undefined, parsedId, undefined, config, undefined);
-      } else {
-        entry = new ExtensionDataEntry(undefined, undefined, id, config, undefined);
-      }
+      const parsedId = BitId.parse(id, true);
+      let entry = ExtensionDataEntry.fromConfigEntry(parsedId, config);
       arr.push(entry);
     }, obj);
     return this.fromArray(arr);

@@ -9,6 +9,7 @@ import { EventEmitter } from 'events';
 
 import { getExecutionCache } from './cache';
 import { Flow } from './flow/flow';
+import { FlowsAspect } from './flows.aspect';
 import { GetFlow, Network } from './network';
 import { getWorkspaceGraph, PostFlow } from './network/network';
 import { ExecutionOptions } from './network/options';
@@ -52,7 +53,7 @@ export class Flows {
         return new Flow([]);
       }
       const isCached = await getExecutionCache().compareToCache(capsule, name);
-      const flowsConfig = component.config.extensions.findCoreExtension('flows')?.config;
+      const flowsConfig = component.config.extensions.findExtension(FlowsAspect.id)?.config;
       const tasks = flowsConfig && flowsConfig.tasks ? flowsConfig.tasks[name] : [];
       const flow = isCached && options.caching ? new Flow([]) : new Flow(tasks);
 
