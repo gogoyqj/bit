@@ -1,4 +1,5 @@
 import * as path from 'path';
+import * as fs from 'fs';
 import R from 'ramda';
 import groupBy from 'lodash.groupby';
 import {
@@ -28,6 +29,9 @@ import DataToPersist from '../consumer/component/sources/data-to-persist';
 import componentIdToPackageName from '../utils/bit/component-id-to-package-name';
 import Symlink from './symlink';
 import getWithoutExt from '../utils/fs/fs-no-ext';
+
+const Parser = require('@typescript-eslint/typescript-estree');
+const Walker = require('node-source-walk');
 
 type SymlinkType = {
   source: PathOsBasedAbsolute; // symlink is pointing to this path
@@ -422,10 +426,40 @@ function getEntryPointsForComponent(
   }
   const files = [];
   const indexName = getIndexFileName(mainFile);
-  const entryPointFileContent = getLinkToFileContent(`./${mainFile}`);
+  let entryPointFileContent = getLinkToFileContent(`./${mainFile}`);
   // @ts-ignore AUTO-ADDED-AFTER-MIGRATION-PLEASE-FIX!
   const componentRoot: string = component.writtenPath || componentMap.rootDir;
   const entryPointPath = path.join(componentRoot, indexName);
+
+  // add `export { default }`
+  if (indexName === 'index.ts') {
+    const walker = new Walker({ parser: Parser });
+    const mainFileContent: string = fs.readFileSync(path.join(process.cwd(), componentRoot, mainFile), {
+      encoding: 'utf-8',
+    });
+    let isDefault = false;
+    walker.walk(mainFileContent, function (node) {
+      switch (node.type) {
+        case 'ExportNamedDeclaration':
+          isDefault = !!node.specifiers.find(({ exported }) => {
+            return exported && exported.type === 'Identifier' && exported.name === 'default';
+          });
+          break;
+        case 'ExportDefaultDeclaration':
+          isDefault = true;
+          break;
+        default:
+          break;
+      }
+      if (isDefault) {
+        entryPointFileContent += `\nexport { default } from './${mainFile.replace(
+          new RegExp(`.${mainFileExt}$`),
+          ''
+        )}';\n`;
+        walker.stopWalking();
+      }
+    });
+  }
   if (
     !component.dists.isEmpty() &&
     component.dists.writeDistsFiles &&
