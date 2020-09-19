@@ -33,6 +33,7 @@ export type ImportOptions = {
   withEnvironments: boolean; // default: false
   writeToPath?: string;
   writePackageJson: boolean; // default: true
+  addToRootPackageJson?: boolean; // default: writePackageJson
   writeConfig: boolean; // default: false
   writeDists: boolean; // default: true
   override: boolean; // default: false
@@ -453,7 +454,7 @@ export default class ImportComponents {
       componentsWithDependencies: componentsToWrite,
       writeToPath: this.options.writeToPath,
       writePackageJson: this.options.writePackageJson,
-      addToRootPackageJson: this.options.writePackageJson, // no point to add to root if it doesn't have package.json
+      addToRootPackageJson: typeof this.options.addToRootPackageJson !== 'undefined' ? this.options.addToRootPackageJson: this.options.writePackageJson, // no point to add to root if it doesn't have package.json
       writeConfig: this.options.writeConfig,
       writeDists: this.options.writeDists,
       installNpmPackages: this.options.installNpmPackages,

@@ -25,6 +25,7 @@ export type CheckoutProps = {
   verbose: boolean;
   skipNpmInstall: boolean;
   ignorePackageJson: boolean;
+  addToRootPackageJson?: boolean;
   writeConfig: boolean;
   reset: boolean; // remove local changes. if set, the version is undefined.
   all: boolean; // checkout all ids
@@ -79,7 +80,8 @@ export default (async function checkoutVersion(
     verbose: checkoutProps.verbose,
     writeDists: !checkoutProps.ignoreDist,
     writeConfig: checkoutProps.writeConfig,
-    writePackageJson: !checkoutProps.ignorePackageJson
+    writePackageJson: !checkoutProps.ignorePackageJson,
+    addToRootPackageJson: typeof checkoutProps.addToRootPackageJson !== 'undefined' ? checkoutProps.addToRootPackageJson : !checkoutProps.ignorePackageJson
   });
   await manyComponentsWriter.writeAll();
 

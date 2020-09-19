@@ -50,6 +50,11 @@ export default class Import implements LegacyCommand {
       'do not generate package.json for the imported component(s). (it automatically enables skip-npm-install and save-dependencies-as-components flags)'
     ],
     [
+      '',
+      'skip-save-dependencies',
+      'do not save imported component(s) to package.json as dependencies'
+    ],
+    [
       'm',
       'merge [strategy]',
       'merge local changes with the imported version. strategy should be "theirs", "ours" or "manual"'
@@ -77,6 +82,7 @@ export default class Import implements LegacyCommand {
       conf,
       skipNpmInstall = false,
       ignorePackageJson = false,
+      skipSaveDependencies,
       merge,
       dependencies = false,
       dependents = false
@@ -94,6 +100,7 @@ export default class Import implements LegacyCommand {
       conf?: string;
       skipNpmInstall?: boolean;
       ignorePackageJson?: boolean;
+      skipSaveDependencies?: boolean;
       merge?: MergeStrategy;
       dependencies?: boolean;
       dependents?: boolean;
@@ -135,6 +142,7 @@ export default class Import implements LegacyCommand {
       writeConfig: !!conf,
       installNpmPackages: !skipNpmInstall,
       writePackageJson: !ignorePackageJson,
+      addToRootPackageJson: skipSaveDependencies !== undefined ? !skipSaveDependencies : undefined,
       importDependenciesDirectly: dependencies,
       importDependents: dependents
     };

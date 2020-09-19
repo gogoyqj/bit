@@ -35,6 +35,11 @@ export default class Checkout implements LegacyCommand {
     ],
     [
       '',
+      'skip-save-dependencies',
+      'do not save imported component(s) to package.json as dependencies'
+    ],
+    [
+      '',
       'conf [path]',
       'write the configuration file (bit.json) and the envs configuration files (use --conf without path to write to the default dir)'
     ],
@@ -54,6 +59,7 @@ export default class Checkout implements LegacyCommand {
       verbose = false,
       skipNpmInstall = false,
       ignorePackageJson = false,
+      skipSaveDependencies,
       conf,
       ignoreDist = false
     }: {
@@ -66,6 +72,7 @@ export default class Checkout implements LegacyCommand {
       verbose?: boolean;
       skipNpmInstall?: boolean;
       ignorePackageJson?: boolean;
+      skipSaveDependencies?: boolean;
       conf?: string;
       ignoreDist?: boolean;
     }
@@ -78,6 +85,7 @@ export default class Checkout implements LegacyCommand {
       verbose,
       skipNpmInstall,
       ignorePackageJson,
+      addToRootPackageJson: skipSaveDependencies !== undefined ? !skipSaveDependencies : undefined,
       writeConfig: !!conf,
       ignoreDist
     };
