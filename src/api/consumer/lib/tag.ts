@@ -58,7 +58,7 @@ export async function tagAction(args: {
   const tagResults = await consumer.tag(
     new BitIds(bitId),
     message,
-    validExactVersion,
+    validExactVersion as string,
     releaseType,
     force,
     verbose,
@@ -140,7 +140,7 @@ export async function tagAllAction(args: {
     // @ts-ignore AUTO-ADDED-AFTER-MIGRATION-PLEASE-FIX!
     componentsToTag,
     message,
-    validExactVersion,
+    validExactVersion as string,
     releaseType,
     force,
     verbose,

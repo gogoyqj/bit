@@ -35,6 +35,6 @@ export default class Version {
     if (!this.versionNum || this.versionNum === LATEST) {
       return true;
     }
-    return semver.gt(this.versionNum, otherVersion.versionNum);
+    return semver.gt(this.versionNum, otherVersion.versionNum as string);
   }
 }
