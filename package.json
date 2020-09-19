@@ -1,5 +1,5 @@
 {
-  "name": "bit-bin",
+  "name": "ebit-bin",
   "version": "14.8.8",
   "license": "Apache-2.0",
   "main": "./dist/api.js",
@@ -65,7 +65,7 @@
     ]
   },
   "bin": {
-    "bit": "bin/bit.js"
+    "eb": "bin/eb.js"
   },
   "repository": {
     "type": "git",
