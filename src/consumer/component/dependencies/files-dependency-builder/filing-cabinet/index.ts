@@ -5,6 +5,7 @@
  */
 import ts from 'typescript';
 import path from 'path';
+import fs from 'fs';
 import getModuleType from 'module-definition';
 import resolve from 'resolve';
 import amdLookup from 'module-lookup-amd';
@@ -219,7 +220,15 @@ function cssPreprocessorLookup(options: Options) {
   }
 
   // Less and Sass imports are very similar
-  return sassLookup({ dependency, filename, directory });
+  const fallbackResult = sassLookup({ dependency, filename, directory });
+  // fix https://github.com/teambit/bit/issues/3125
+  if (!fs.existsSync(fallbackResult)) {
+    const result = resolveWebpack(dependency, filename, directory, { extensions: styleExtensions, symlinks: false });
+    if (fs.existsSync(result)) {
+      return result;
+    }
+  }
+  return fallbackResult
 }
 
 function tsLookup(options: Options) {
