@@ -1,6 +1,6 @@
 {
   "name": "ebit-bin",
-  "version": "14.8.8",
+  "version": "14.8.81",
   "license": "Apache-2.0",
   "main": "./dist/api.js",
   "preferGlobal": true,
@@ -65,7 +65,9 @@
     ]
   },
   "bin": {
-    "eb": "bin/eb.js"
+    "eb": "bin/eb.js",
+    "ebi": "bin/e.js",
+    "ebc": "bin/e.js"
   },
   "repository": {
     "type": "git",
