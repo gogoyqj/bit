@@ -66,8 +66,8 @@
   },
   "bin": {
     "eb": "bin/eb.js",
-    "ebi": "bin/e.js",
-    "ebc": "bin/e.js"
+    "ebi": "bin/eb.js",
+    "ebc": "bin/eb.js"
   },
   "repository": {
     "type": "git",
