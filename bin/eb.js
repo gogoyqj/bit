@@ -70,16 +70,15 @@ let runDefault = true;
 switch (shortName) {
   // short for bit import
   case 'ebi':
+    const importedComponents = getDepentsFromBitMap((cp, bitConfig) => {
+      return importedFilter(cp, bitConfig) && !customImportedFilter(cp, bitConfig)
+    }, bitConfig);
     process.argv = process.argv.slice(0, 2)
       .concat(['import'])
       .concat(optionInFont ? importArr : [])
       .concat(args)
       .concat(optionInFont ? [] : importArr)
-      .concat(componentSpecified ? [] : getDepentsFromBitMap((cp, bitConfig) => {
-        return importedFilter(cp, bitConfig) && !customImportedFilter(cp, bitConfig)
-      }, bitConfig));
-    
-      
+      .concat(componentSpecified ? [] : importedComponents);
     if (!componentSpecified) {
       const customImportedComponents = getDepentsFromBitMap((cp, bitConfig) => {
         return importedFilter(cp, bitConfig) && customImportedFilter(cp, bitConfig)
@@ -102,6 +101,10 @@ switch (shortName) {
         });
       }
     } 
+    if (!importedComponents.length) {
+      runDefault = false;
+      console.log(chalk.green('no \'IMPORTED\' components imported'))
+    }
     
     break;
   case 'ebc':
