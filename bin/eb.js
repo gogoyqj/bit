@@ -101,7 +101,7 @@ switch (shortName) {
         });
       }
     } 
-    if (!importedComponents.length) {
+    if (!componentSpecified && !importedComponents.length) {
       runDefault = false;
       console.log(chalk.green('no \'IMPORTED\' components imported'))
     }
