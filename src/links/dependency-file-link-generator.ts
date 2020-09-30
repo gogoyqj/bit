@@ -156,6 +156,13 @@ export default class DependencyFileLinkGenerator {
         linkFileTs.postInstallLink = true;
       }
       this.linkFiles.push(linkFileTs);
+    } else if (getExt(this.relativePathInDependency) === 'less') {
+      // since less can't resolve `src/styles/mixins` to `node_modules/src/styles/mixins/index.less`
+      // link a package.json here
+      this.linkFiles.push({
+        linkPath: linkFile.linkPath.replace(/index.less$/g, 'package.json'),
+        linkContent: JSON.stringify({ main: './index.less' }, null, '  ')
+      })
     }
 
     return this.linkFiles;
