@@ -1,6 +1,6 @@
 {
   "name": "ebit-bin",
-  "version": "14.8.83",
+  "version": "14.8.84",
   "license": "Apache-2.0",
   "main": "./dist/api.js",
   "preferGlobal": true,
