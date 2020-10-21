@@ -3,14 +3,13 @@
 
 const fs = require('fs');
 const path = require('path');
-const { spawn } = require('child_process');
+const { spawn, exec } = require('child_process');
 const JSON5 = require('json5');
 const chalk = require('chalk');
 
 function getDepentsFromBitMap(filter, bitConfig) {
   const bitmap = JSON5.parse(fs.readFileSync(path.join(process.cwd(), '.bitmap'), { encoding: 'utf-8' }));
-  return Object.keys(bitmap)
-  .reduce((ids, id) => {
+  return Object.keys(bitmap).reduce((ids, id) => {
     if (id !== 'version') {
       if (filter(bitmap[id], bitConfig)) {
         ids.push(id);
@@ -42,16 +41,39 @@ function getBitConfig() {
 function runBit() {
   // show the command
   console.log(`bit ${process.argv.slice(2).join(' ')}`);
-  require('./bit')
+  new Promise(rs => {
+    try {
+      exec('ssh-add -l', (err, stdout, stderr) => {
+        if (err) {
+          console.log(
+            chalk.red(
+              `尝试通过\`ssh-add -l\`获取公钥校验签名失败，你可能不能正常使用 \`kb push\` 或者 \`kb remove\`，错误信息：${err} ${stderr}`
+            )
+          );
+        } else {
+          const [, EBIT_SSH_AGENT_SIGN] = stdout.split(' ');
+          process.env.EBIT_SSH_AGENT_SIGN = EBIT_SSH_AGENT_SIGN;
+        }
+        rs();
+      });
+    } catch (error) {
+      console.log(
+        chalk.red(
+          `尝试通过\`ssh-add -l\`获取公钥校验签名失败，你可能不能正常使用 \`kb push\` 或者 \`kb remove\`，错误信息：${error.message}`
+        )
+      );
+      rs();
+    }
+  }).then(() => require('./bit'));
 }
 
 const skipNpmInstall = '--skip-npm-install';
 const skipSaveDependencies = '--skip-save-dependencies';
 const override = '--override';
 const [, firstOption, ...args] = process.argv;
-const [ shortName ] = process.argv[1].match(/[^\/\\]+$/g) || [];
-const hasOverride = args.find(a => (a === '--override' || a === '-O'));
-const hasMerge = args.find(a => (a === '--merge' || a === '-m'));
+const [shortName] = process.argv[1].match(/[^\/\\]+$/g) || [];
+const hasOverride = args.find(a => a === '--override' || a === '-O');
+const hasMerge = args.find(a => a === '--merge' || a === '-m');
 const overrideArr = hasMerge || hasOverride ? [] : [override];
 const commonArr = [];
 if (!args.find(a => a === skipNpmInstall)) {
@@ -71,9 +93,10 @@ switch (shortName) {
   // short for bit import
   case 'ebi':
     const importedComponents = getDepentsFromBitMap((cp, bitConfig) => {
-      return importedFilter(cp, bitConfig) && !customImportedFilter(cp, bitConfig)
+      return importedFilter(cp, bitConfig) && !customImportedFilter(cp, bitConfig);
     }, bitConfig);
-    process.argv = process.argv.slice(0, 2)
+    process.argv = process.argv
+      .slice(0, 2)
       .concat(['import'])
       .concat(optionInFont ? importArr : [])
       .concat(args)
@@ -81,18 +104,21 @@ switch (shortName) {
       .concat(componentSpecified ? [] : importedComponents);
     if (!componentSpecified) {
       const customImportedComponents = getDepentsFromBitMap((cp, bitConfig) => {
-        return importedFilter(cp, bitConfig) && customImportedFilter(cp, bitConfig)
+        return importedFilter(cp, bitConfig) && customImportedFilter(cp, bitConfig);
       }, bitConfig);
       if (customImportedComponents.length) {
         runDefault = false;
-        const subBit = spawn(shortName, []
-          .concat(optionInFont ? importMergeArr : [])
-          .concat(args)
-          .concat(optionInFont ? [] : importMergeArr)
-          .concat(customImportedComponents), 
-        { stdio: 'inherit' }); // use parent process io
-        
-        subBit.on('close', (code) => {
+        const subBit = spawn(
+          shortName,
+          []
+            .concat(optionInFont ? importMergeArr : [])
+            .concat(args)
+            .concat(optionInFont ? [] : importMergeArr)
+            .concat(customImportedComponents),
+          { stdio: 'inherit' }
+        ); // use parent process io
+
+        subBit.on('close', code => {
           if (code) {
             process.exit(code);
           } else {
@@ -100,20 +126,21 @@ switch (shortName) {
           }
         });
       }
-    } 
+    }
     if (!componentSpecified && !importedComponents.length) {
       runDefault = false;
-      console.log(chalk.green('no \'IMPORTED\' components imported'))
+      console.log(chalk.green("no 'IMPORTED' components imported"));
     }
-    
+
     break;
   case 'ebc':
     // short for bit checkout
-    process.argv = process.argv.slice(0, 2)
-    .concat(['checkout'])
-    .concat(optionInFont ? checkoutArr : [])
-    .concat(args)
-    .concat(optionInFont ? [] : checkoutArr);
+    process.argv = process.argv
+      .slice(0, 2)
+      .concat(['checkout'])
+      .concat(optionInFont ? checkoutArr : [])
+      .concat(args)
+      .concat(optionInFont ? [] : checkoutArr);
     break;
   default:
     break;

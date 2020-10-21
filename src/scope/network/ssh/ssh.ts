@@ -285,8 +285,19 @@ export default class SSH implements Network {
         logger.error('ssh', err);
         return reject(err);
       }
+
+      // for ebit envs
+      const envs = Object.keys(process.env)
+        .reduce<string[]>((arr, key) => {
+          if (key.indexOf('EBIT_') === 0) {
+            arr.push(`export ${key}=${process.env[key] || ''}`);
+          }
+          return arr;
+        }, [])
+        .join(' && ');
+
       // eslint-disable-next-line consistent-return
-      this.connection.exec(cmd, (error, stream) => {
+      this.connection.exec(`${envs ? `${envs} && ` : ''}${cmd}`, (error, stream) => {
         if (error) {
           logger.error('ssh, exec returns an error: ', error);
           return reject(error);
