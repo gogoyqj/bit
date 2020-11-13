@@ -7,16 +7,20 @@ const { spawn, exec } = require('child_process');
 const JSON5 = require('json5');
 const chalk = require('chalk');
 
-function getDepentsFromBitMap(filter, bitConfig) {
+function getDepentsFromBitMap(filter, bitConfig, modifyID) {
   const bitmap = JSON5.parse(fs.readFileSync(path.join(process.cwd(), '.bitmap'), { encoding: 'utf-8' }));
   return Object.keys(bitmap).reduce((ids, id) => {
     if (id !== 'version') {
       if (filter(bitmap[id], bitConfig)) {
-        ids.push(id);
+        ids.push(typeof modifyID === 'function' ? modifyID(id) : id);
       }
     }
     return ids;
   }, []);
+}
+
+function convertIdToLatestVersion(id) {
+  return id.split('@')[0] + '@latest';
 }
 
 // 筛选被消费的组件
@@ -89,23 +93,40 @@ const optionInFont = firstOption && firstOption[0] === '-';
 const componentSpecified = args.find(a => a.indexOf('/') !== -1);
 const bitConfig = getBitConfig();
 let runDefault = true;
+let hasUpdateAll = false;
 switch (shortName) {
   // short for bit import
   case 'ebi':
-    const importedComponents = getDepentsFromBitMap((cp, bitConfig) => {
-      return importedFilter(cp, bitConfig) && !customImportedFilter(cp, bitConfig);
-    }, bitConfig);
     process.argv = process.argv
       .slice(0, 2)
       .concat(['import'])
       .concat(optionInFont ? importArr : [])
       .concat(args)
       .concat(optionInFont ? [] : importArr)
-      .concat(componentSpecified ? [] : importedComponents);
+      .filter(p => {
+        const isNotUpdateAll = p !== '--update-all';
+        if (!isNotUpdateAll) {
+          hasUpdateAll = true;
+        }
+        return isNotUpdateAll;
+      });
+
+    const importedComponents = getDepentsFromBitMap(
+      (cp, bitConfig) => {
+        return importedFilter(cp, bitConfig) && !customImportedFilter(cp, bitConfig);
+      },
+      bitConfig,
+      hasUpdateAll && convertIdToLatestVersion
+    );
+    process.argv = process.argv.concat(componentSpecified ? [] : importedComponents);
     if (!componentSpecified) {
-      const customImportedComponents = getDepentsFromBitMap((cp, bitConfig) => {
-        return importedFilter(cp, bitConfig) && customImportedFilter(cp, bitConfig);
-      }, bitConfig);
+      const customImportedComponents = getDepentsFromBitMap(
+        (cp, bitConfig) => {
+          return importedFilter(cp, bitConfig) && customImportedFilter(cp, bitConfig);
+        },
+        bitConfig,
+        hasUpdateAll && convertIdToLatestVersion
+      );
       if (customImportedComponents.length) {
         runDefault = false;
         const subBit = spawn(
