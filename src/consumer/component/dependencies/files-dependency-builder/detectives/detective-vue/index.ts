@@ -22,7 +22,8 @@ export default function(src, options: Record<string, any> = {}) {
   // eslint-disable-next-line import/no-dynamic-require, global-require
   const precinct = require('../../precinct').default;
   if (script) {
-    if (script.lang) {
+    // INFO: 如在 .vue 文件内，设置 script lang 为 js，当做未设置 lang 处理，否则不能正确解析依赖。
+    if (script.lang && script.lang !== 'js') {
       options.type = script.lang;
     } else {
       options.useContent = true;
